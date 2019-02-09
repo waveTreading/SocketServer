@@ -5,6 +5,62 @@
 #include <stdio.h>
 #pragma comment(lib,"ws2_32.lib")
 
+enum CMD
+{
+	CMD_LOGIN,
+	CMD_LOGIN_RESULT,
+	CMD_LOGINOUT,
+	CMD_LOGINOUT_RESULT,
+	CMD_ERROR
+};
+
+//消息头
+struct DataHeader
+{
+	short dataLength;
+	short cmd;
+};
+
+struct Login : public DataHeader
+{
+	Login()
+	{
+		dataLength = sizeof(Login);
+		cmd = CMD_LOGIN;
+	}
+	char userName[32];
+	char passWord[32];
+};
+
+struct LoginResult : public DataHeader
+{
+	LoginResult()
+	{
+		dataLength = sizeof(LoginResult);
+		cmd = CMD_LOGIN_RESULT;
+	}
+	int result;
+};
+
+struct LoginOut : public DataHeader
+{
+	LoginOut()
+	{
+		dataLength = sizeof(LoginOut);
+		cmd = CMD_LOGINOUT;
+	}
+	char userName[32];
+};
+struct LoginOutResult : public DataHeader
+{
+	LoginOutResult()
+	{
+		dataLength = sizeof(LoginOutResult);
+		cmd = CMD_LOGINOUT_RESULT;
+		result = 0;
+	}
+	int result;
+};
 // 接收数据信息的结构体
 struct DataPackage
 {
@@ -55,19 +111,34 @@ int main()
 			printf("收到退出，任务结束");
 			break;
 		}
+		else if (0 == strcmp(cmdBuf, "login"))
+		{
+			Login login;
+			strcpy(login.userName, "lyd");
+			strcpy(login.passWord, "mima");
+			// 5向服务器发送请求命令
+			send(_sock, (const char *)&login, sizeof(login), 0);
+			//接收服务器返回数据
+			LoginResult loginRet = {};
+			recv(_sock, (char*)&loginRet, sizeof(loginRet), 0);
+			printf("LoginResult: %d \n",loginRet.cmd);
+
+		}
+		else if (0 == strcmp(cmdBuf, "logout"))
+		{
+			LoginOut logOut;
+			strcpy(logOut.userName, "lyd");
+			// 5向服务器发送请求命令
+			send(_sock, (const char*)&logOut, sizeof(logOut),0);
+			//接收服务器返回数据
+			LoginOutResult loginRet = {};
+			recv(_sock, (char*)&loginRet, sizeof(loginRet), 0);
+			printf("LoginOutResult: %d \n", loginRet.result);
+
+		}
 		else
 		{
-			// 5向服务器发送请求命令
-			send(_sock, cmdBuf, sizeof(cmdBuf), 0);
-		}
-
-		// 6 接收服务器信息
-		char recvBuf[256] = {0};
-		int nlen = recv(_sock, recvBuf,sizeof(recvBuf), 0);
-		if (nlen > 0)
-		{
-			DataPackage* dp = (DataPackage*)recvBuf;
-			printf("接收到的数据： 年龄:%d 姓名:%s \n",dp->age,dp->name);
+			printf("不支持命令，请重新输入。");
 		}
 	} 
 	

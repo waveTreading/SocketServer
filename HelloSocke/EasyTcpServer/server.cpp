@@ -8,7 +8,9 @@
 enum CMD
 {
 	CMD_LOGIN,
+	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
+	CMD_LOGINOUT_RESULT,
 	CMD_ERROR
 };
 
@@ -19,23 +21,44 @@ struct DataHeader
 	short cmd;
 };
 
-struct Login
+struct Login : public DataHeader
 {
+	Login()
+	{
+		dataLength = sizeof(Login);
+		cmd = CMD_LOGIN;
+	}
 	char userName[32];
 	char passWord[32];
 };
 
-struct LoginResult
+struct LoginResult : public DataHeader
 {
+	LoginResult()
+	{
+		dataLength = sizeof(LoginResult);
+		cmd = CMD_LOGIN_RESULT;
+	}
 	int result;
 };
 
-struct LoginOut
+struct LoginOut : public DataHeader
 {
+	LoginOut()
+	{
+		dataLength = sizeof(LoginOut);
+		cmd = CMD_LOGINOUT;
+	}
 	char userName[32];
 };
-struct LoginOutResult
+struct LoginOutResult : public DataHeader
 {
+	LoginOutResult()
+	{
+		dataLength = sizeof(LoginOutResult);
+		cmd = CMD_LOGINOUT_RESULT;
+		result = 0;
+	}
 	int result;
 };
 
@@ -99,26 +122,26 @@ int main()
 			printf("客户端%s   退出", inet_ntoa(clientAddr.sin_addr));
 			break;
 		};
-		printf("收到命令:%d 数据长度：%d\n", header.cmd, header.dataLength);
 		switch (header.cmd)
 		{
 			case CMD_LOGIN:
 			{
 				Login login = {};
-				recv(_cSock, (char*)&login,sizeof(Login), 0);
+				recv(_cSock, (char*)&login + sizeof(DataHeader), sizeof(Login) - sizeof(DataHeader), 0);
+				printf("收到命令:%d 数据长度：%d  账号%s   密码：%s\n",login.cmd, login.dataLength, login.userName, login.passWord);
 				//忽略判断用户密码是否正确的过程
-				LoginResult ret = {0};
-				send(_cSock, (char*)&header, sizeof(DataHeader), 0);
+				LoginResult ret;
 				send(_cSock, (char*)&ret, sizeof(LoginResult), 0);
 			}
 			break;
 			case CMD_LOGINOUT:
 			{
 				LoginOut loginOut = {};
-				recv(_cSock, (char*)&loginOut, sizeof(LoginOut), 0);
+				recv(_cSock, (char*)&loginOut + sizeof(DataHeader), sizeof(LoginOut) - sizeof(DataHeader), 0);
+				printf("收到命令:%d 数据长度：%d  账号%s\n", loginOut.cmd, loginOut.dataLength, loginOut.userName);
+
 				//忽略判断用户密码是否正确的过程
-				LoginResult ret = {1};
-				send(_cSock, (char*)&header, sizeof(DataHeader), 0);
+				LoginResult ret;
 				send(_cSock, (char*)&ret, sizeof(LoginResult), 0);
 			}
 				break;
