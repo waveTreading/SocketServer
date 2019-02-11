@@ -14,6 +14,7 @@ enum CMD
 	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
 	CMD_LOGINOUT_RESULT,
+	CMD_NEW_USER_JOIN,
 	CMD_ERROR
 };
 
@@ -65,6 +66,16 @@ struct LoginOutResult : public DataHeader
 	int result;
 };
 
+struct NewUserJoin : public DataHeader
+{
+	NewUserJoin()
+	{
+		dataLength = sizeof(NewUserJoin);
+		cmd = CMD_NEW_USER_JOIN;
+		socket = 0;
+	}
+	int socket;
+};
 // 发送数据信息的结构体
 struct DataPackage
 {
@@ -153,14 +164,16 @@ int main()
 	while (true)
 	{
 		// 伯克利 socket
-		fd_set fdRead;
+		fd_set fdRead;// 描述符( socket ) 集合
 		fd_set fdWrite;
 		fd_set fdExp;
 
+		//请立集合
 		FD_ZERO(&fdRead);
 		FD_ZERO(&fdWrite);
 		FD_ZERO(&fdExp);
 
+		//将描述符加入集合
 		FD_SET(_sock, &fdRead);
 		FD_SET(_sock, &fdWrite);
 		FD_SET(_sock, &fdExp);
@@ -172,13 +185,14 @@ int main()
 		}
 		//nfds 是一个整数值 是指fd_set集合中所有描述符（socket）的范围，而不是数量
 		// 即使所有文件描述符最大值+1， 在Windows中这个参数可以写0；
-		int ret = select(0,&fdRead, &fdWrite, &fdExp, NULL);
+		timeval t = {2,0};
+		int ret = select(0,&fdRead, &fdWrite, &fdExp, &t);
 		if (ret < 0)
 		{
 			printf("客户端已推出，任务结束。 \n");
 			break;
 		}
-		// 判断集合中是否有可操作socket
+		// 判断描述符（socket） 是否在集合中
 		if (FD_ISSET(_sock, &fdRead))
 		{
 			FD_CLR(_sock, &fdRead);
@@ -192,8 +206,16 @@ int main()
 			{
 				printf("ERROT，接收到无效客户端socket...\n");
 			}
-			printf("新客户端加入： IP = %s \n", inet_ntoa(clientAddr.sin_addr)); // inet_ntoa 转换成可读的
-			g_clients.push_back(_cSock);
+			else
+			{
+				for (int i = (int)g_clients.size() - 1; i >= 0; i--)
+				{
+					NewUserJoin userJoin;
+					send(g_clients[i], (const char*)&userJoin, sizeof(NewUserJoin), 0);
+				}
+				printf("新客户端加入： IP = %s \n", inet_ntoa(clientAddr.sin_addr)); // inet_ntoa 转换成可读的
+				g_clients.push_back(_cSock);
+			}
 		}
 
 		for (int n = 0; n < fdRead.fd_count; n++)
@@ -207,8 +229,8 @@ int main()
 					g_clients.erase(iter);
 				}
 			}
-
 		}
+		printf("空闲时间处理其他业务 \n");
 		
 	}
 	printf("客户端已经退出，任务结束。");
