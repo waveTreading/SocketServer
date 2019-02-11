@@ -1,4 +1,4 @@
-﻿生成启动时间为 2019/2/9 14:47:18。
+﻿生成启动时间为 2019/2/11 14:34:54。
      1>项目“D:\work\vsC++\HeoolSocket\SocketServer\HelloSocke\HelloSocket\HelloSocket.vcxproj”在节点 2 上(Rebuild 个目标)。
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Test.cpp
@@ -10,4 +10,4 @@
 
 生成成功。
 
-已用时间 00:00:00.93
+已用时间 00:00:01.27
