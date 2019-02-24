@@ -142,7 +142,7 @@ int main()
 	// 2 bind 绑定用于接收客户端连接额网络端口
 	sockaddr_in _sin = {};
 	_sin.sin_family = AF_INET;
-	_sin.sin_port = htons(8080);// host to net unsigned short 主机到网络字节序的转换
+	_sin.sin_port = htons(4567);// host to net unsigned short 主机到网络字节序的转换
 	_sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1"); // ipv4的地址
 	if (SOCKET_ERROR == bind(_sock, (sockaddr*)&_sin, sizeof(_sin)))
 	{
